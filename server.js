@@ -15,21 +15,35 @@ const dishSchema = new mongoose.Schema({
     allergens: [String]
 })
 
-const Dish = mongoose.model("Dish", dishSchema)
-
-const Cart = mongoose.model("Cart", {
-    dishes: [dishSchema]
-})
-
-
-const Choice = mongoose.model("Choice", {
+const choiceSchema = new mongoose.Schema({
     address: {
         street: String,
         city: String,
         zip: Number
     },
     dishes: [dishSchema]
-}) 
+})
+
+const Dish = mongoose.model("Dish", dishSchema)
+
+const Cart = mongoose.model("Cart", {
+    dishes: [dishSchema]
+})
+
+const Choice = mongoose.model("Choice", choiceSchema)
+
+const User = mongoose.model("User", {
+    name: String,
+    email: String,
+    password: String,
+    choices: [choiceSchema],
+    address : {
+        street: String,
+        city: String,
+        zip: Number
+    },
+    isAdmin: Boolean
+})
 
 // Create a dish
 app.post("/dishes", (req, res) => {
@@ -127,7 +141,7 @@ app.post("/choice/:id/:dishId", async(req, res) => {
 
 
 // Remove a dish by id from the choice by id
-app.delete("choice/:id/:dish", async(req, res) => {
+app.delete("/choice/:id/:dish", async(req, res) => {
     const choice = await Choice.findById(req.params.id)
     choice.dishes = choice.dishes.filter((dish) => dish._id != req.params.dish)
     choice.save().then((choice) => res.json(choice))
@@ -137,8 +151,9 @@ app.delete("choice/:id/:dish", async(req, res) => {
 // Delete one by ID
 app.delete("/choice/:id", async(req, res) => {
     Choice.findByIdAndDelete(req.params.id)
-    .then((choice) => res.json(choice))
     .catch(() => res.status(404).end())
+    const choices = await Choice.find()
+    res.json(choices)
 })
 
 app.get("*", (req, res) => {
