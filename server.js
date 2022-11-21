@@ -110,13 +110,21 @@ app.get("/choice/:id", async(req, res) => {
     .catch(() => res.status(404).end())
 })
 
-// Add a dish by id to the choice by id
-app.post("choice/:id/:dish", async(req, res) => {
-    const dish = await Dish.findById(req.params.dish)
+// Add a dish by id to the choice by id, verify that the dish is in the cart
+app.post("/choice/:id/:dishId", async(req, res) => {
+    const dish = await Dish.findById(req.params.dishId)
     const choice = await Choice.findById(req.params.id)
-    choice.dishes.push(dish)
-    choice.save().then((choice) => res.json(choice))
+    const cart = await Cart.find()
+    if (cart[0].dishes.some((dish) => dish._id == req.params.dishId)) {
+        console.log("dish is in cart")
+        choice.dishes.push(dish)
+        choice.save().then((choice) => res.json(choice))
+    } else {
+        console.log("dish not in cart")
+        res.status(404).end()
+    }
 })
+
 
 // Remove a dish by id from the choice by id
 app.delete("choice/:id/:dish", async(req, res) => {
