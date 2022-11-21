@@ -78,6 +78,34 @@ app.delete("/dishes/:id", async(req, res) => {
     .catch(() => res.status(404).end())
 })
 
+app.get("/dishes/search/:keyword", async (req, res) => {
+    console.log("GET /dishes/search")
+    const cart = await Cart.find()
+    let response = []
+
+    for (let dish of cart[0].dishes) {
+        if (dish.name.toLowerCase().includes(req.params.keyword.toLowerCase())) {
+            response.push(dish)
+        }
+        else if (dish.description.toLowerCase().includes(req.params.keyword.toLowerCase())) {
+            response.push(dish)
+        } 
+        else if (dish.allergens.includes(req.params.keyword)) {
+            response.push(dish)
+        }
+        else if (dish.price == req.params.keyword) {
+            response.push(dish)
+        }
+    }
+
+    if (response.length == 0) {
+        console.log("No dishes found")
+        res.status(404).end()
+    } else {
+        res.json(response)
+    }
+})
+
 // Create a cart
 app.post("/cart", (req, res) => {
     const cartToSave = new Cart(req.body)
